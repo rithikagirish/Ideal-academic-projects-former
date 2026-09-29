@@ -1,0 +1,195 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>TeamFormer AI - Autonomous Balanced Team Matchmaker</title>
+  <link rel="stylesheet" href="/static/style.css">
+  <link rel="shortcut icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>⚡</text></svg>">
+</head>
+<body>
+
+  <!-- Top Navigation Bar -->
+  <nav class="navbar">
+    <div class="brand">
+      <div class="brand-icon">⚡</div>
+      <div class="brand-title">TeamFormer AI</div>
+      <span class="brand-badge">Agentic AI System</span>
+    </div>
+
+    <div class="stats-bar">
+      <div class="stat-chip">
+        <span class="stat-label">Total Roster</span>
+        <span class="stat-val" id="stat-total-students">0</span>
+      </div>
+      <div class="stat-chip">
+        <span class="stat-label">Formed Teams</span>
+        <span class="stat-val" id="stat-formed-teams">0</span>
+      </div>
+      <div class="stat-chip">
+        <span class="stat-label">Global Balance Score</span>
+        <span class="stat-val" id="stat-global-score">--</span>
+      </div>
+    </div>
+  </nav>
+
+  <!-- Main Grid Layout -->
+  <main class="main-container">
+    
+    <!-- Left Sidebar: Controls & Agent Live Feed -->
+    <aside class="glass-panel">
+      <div class="panel-header">
+        <div class="panel-title">
+          <span>🤖</span> Matchmaker Agent
+        </div>
+      </div>
+
+      <!-- Parameters Form -->
+      <form id="agent-form" onsubmit="event.preventDefault(); triggerTeamFormation();">
+        <div class="form-group">
+          <label class="form-label">
+            Target Team Size
+            <span class="val" id="val-team-size">3 Students</span>
+          </label>
+          <input type="range" class="range-slider" id="input-team-size" min="2" max="6" value="3" oninput="document.getElementById('val-team-size').innerText = this.value + ' Students'">
+        </div>
+
+        <div class="form-group">
+          <label class="form-label">
+            Skill Diversity Weight
+            <span class="val" id="val-w-skills">40%</span>
+          </label>
+          <input type="range" class="range-slider" id="input-w-skills" min="0" max="1" step="0.05" value="0.4" oninput="document.getElementById('val-w-skills').innerText = Math.round(this.value*100) + '%'">
+        </div>
+
+        <div class="form-group">
+          <label class="form-label">
+            Interest Harmony Weight
+            <span class="val" id="val-w-interests">30%</span>
+          </label>
+          <input type="range" class="range-slider" id="input-w-interests" min="0" max="1" step="0.05" value="0.3" oninput="document.getElementById('val-w-interests').innerText = Math.round(this.value*100) + '%'">
+        </div>
+
+        <div class="form-group">
+          <label class="form-label">
+            Past Synergy Weight
+            <span class="val" id="val-w-synergy">30%</span>
+          </label>
+          <input type="range" class="range-slider" id="input-w-synergy" min="0" max="1" step="0.05" value="0.3" oninput="document.getElementById('val-w-synergy').innerText = Math.round(this.value*100) + '%'">
+        </div>
+
+        <div class="form-group">
+          <label class="form-label">Custom Agent Prompt / Constraint</label>
+          <input type="text" class="input-text" id="input-constraint" placeholder="e.g. Ensure every team has a Python developer">
+        </div>
+
+        <button type="submit" class="btn-primary" id="btn-run-agent">
+          <span>⚡</span> Form Balanced Teams
+        </button>
+      </form>
+
+      <!-- Agent Thought & Reflection Log -->
+      <div class="panel-header" style="margin-top: 0.5rem;">
+        <div class="panel-title" style="font-size: 0.95rem;">
+          <span>🧠</span> Agent Reasoning Feed
+        </div>
+      </div>
+      <div class="agent-log-box" id="agent-logs">
+        <div class="agent-log-line step1">[Ready] Agent standing by. Click 'Form Balanced Teams' to begin multi-step analysis.</div>
+      </div>
+    </aside>
+
+    <!-- Right Content Area: Teams & Roster Tabs -->
+    <section class="glass-panel" style="gap: 1rem;">
+      
+      <!-- Tab Controls & Header Actions -->
+      <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid var(--border-color); padding-bottom: 0.5rem;">
+        <div class="tabs-header">
+          <button class="tab-btn active" id="tab-teams-btn" onclick="switchTab('teams')">🏆 Formed Teams</button>
+          <button class="tab-btn" id="tab-students-btn" onclick="switchTab('students')">👥 Student Roster (<span id="roster-count">0</span>)</button>
+        </div>
+        <div style="display: flex; gap: 0.5rem;">
+          <button class="btn-secondary" onclick="openAddStudentModal()">+ Add Student</button>
+          <button class="btn-secondary" onclick="resetRoster()">🔄 Reset Mock Data</button>
+        </div>
+      </div>
+
+      <!-- Tab 1: Formed Teams View -->
+      <div class="tab-content active" id="tab-teams">
+        <div id="teams-container" class="teams-grid">
+          <div style="grid-column: 1 / -1; text-align: center; padding: 4rem 1rem; color: var(--text-muted);">
+            <div style="font-size: 3rem; margin-bottom: 1rem;">🤖</div>
+            <h3>No Teams Formed Yet</h3>
+            <p style="margin-top: 0.5rem; font-size: 0.9rem;">Click <strong>"Form Balanced Teams"</strong> on the left panel to execute the Agentic AI matchmaker.</p>
+          </div>
+        </div>
+      </div>
+
+      <!-- Tab 2: Student Roster View -->
+      <div class="tab-content" id="tab-students">
+        <div style="display: flex; gap: 1rem; margin-bottom: 1rem;">
+          <input type="text" class="input-text" id="roster-search" placeholder="Search students by name or skill..." oninput="filterRoster()">
+        </div>
+        <div id="students-container" class="students-grid">
+          <!-- Student cards rendered dynamically -->
+        </div>
+      </div>
+
+    </section>
+
+  </main>
+
+  <!-- Add Student Modal -->
+  <div class="modal-overlay" id="add-student-modal">
+    <div class="modal-card">
+      <div class="panel-header">
+        <div class="panel-title">Add New Student Profile</div>
+        <button class="btn-secondary" style="padding: 0.2rem 0.5rem;" onclick="closeAddStudentModal()">✕</button>
+      </div>
+
+      <form id="add-student-form" onsubmit="event.preventDefault(); submitAddStudent();">
+        <div class="form-group">
+          <label class="form-label">Student ID</label>
+          <input type="text" class="input-text" id="new-id" required placeholder="e.g. S13">
+        </div>
+
+        <div class="form-group">
+          <label class="form-label">Full Name</label>
+          <input type="text" class="input-text" id="new-name" required placeholder="e.g. Alex Morgan">
+        </div>
+
+        <div class="form-group">
+          <label class="form-label">Technical Skills (comma separated)</label>
+          <input type="text" class="input-text" id="new-skills" required placeholder="e.g. Python, FastAPI, React, UI/UX Design">
+        </div>
+
+        <div class="form-group">
+          <label class="form-label">Project Interests (comma separated)</label>
+          <input type="text" class="input-text" id="new-interests" required placeholder="e.g. AI & Healthcare, FinTech">
+        </div>
+
+        <div class="form-group">
+          <label class="form-label">Preferred Roles (comma separated)</label>
+          <input type="text" class="input-text" id="new-roles" required placeholder="e.g. AI Specialist, Team Lead">
+        </div>
+
+        <div class="form-group">
+          <label class="form-label">Experience Level</label>
+          <select class="input-select" id="new-exp">
+            <option value="Beginner">Beginner</option>
+            <option value="Intermediate" selected>Intermediate</option>
+            <option value="Advanced">Advanced</option>
+          </select>
+        </div>
+
+        <div style="display: flex; gap: 0.5rem; justify-content: flex-end; margin-top: 1rem;">
+          <button type="button" class="btn-secondary" onclick="closeAddStudentModal()">Cancel</button>
+          <button type="submit" class="btn-primary" style="width: auto;">Save Student</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <script src="/static/script.js"></script>
+</body>
+</html>
